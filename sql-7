@@ -1,0 +1,33 @@
+SELECT COUNT(*) FROM table; -- Use this to determine rand_low and rand_high
+
+  SELECT *
+    FROM table
+   WHERE frozen_rand BETWEEN %(rand_low)s AND %(rand_high)s
+ORDER BY RAND() LIMIT 1000
+create table RandomKeys (RandomKey int)
+create table RandomKeysAttempt (RandomKey int)
+
+-- generate m random keys between 1 and n
+for i = 1 to m
+  insert RandomKeysAttempt select rand()*n + 1
+
+-- eliminate duplicates
+insert RandomKeys select distinct RandomKey from RandomKeysAttempt
+
+-- as long as we don't have enough, keep generating new keys,
+-- with luck (and m much less than n), this won't be necessary
+while count(RandomKeys) < m
+  NextAttempt = rand()*n + 1
+  if not exists (select * from RandomKeys where RandomKey = NextAttempt)
+    insert RandomKeys select NextAttempt
+
+-- get our random rows
+select *
+from RandomKeys r
+join table t ON r.RandomKey = t.UniqueKey
+ArrayList<Integer> indices = new ArrayList<Integer>(rowsCount);
+for (int i = 0; i < rowsCount; i++) {
+    indices.add(i);
+}
+Collections.shuffle(indices);
+String inClause = indices.toString().replace('[', '(').replace(']', ')');
